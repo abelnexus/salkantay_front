@@ -1,59 +1,92 @@
-# SalkantayFront
+# Salkantay — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.1.
+Interfaz web del sistema Salkantay: inicio de sesión, gestión de usuarios y roles/permisos.
 
-## Development server
+| Repositorio | Stack | URL local |
+| --- | --- | --- |
+| [salkantay_back](https://github.com/abelnexus/salkantay_back) | Laravel 13 · PHP 8.4-FPM · Nginx · MySQL 8.4 | http://localhost:8081/api |
+| **salkantay_front** (este) | Angular 22 · Node 22 | http://localhost:4200 |
 
-To start a local development server, run:
+El sistema completo necesita **los dos repositorios corriendo a la vez**. El front consume la API en `http://localhost:8081/api` (configurado en `src/environments/`).
 
-```bash
-ng serve
-```
+---
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Requisitos
 
-## Code scaffolding
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (incluye Docker Compose)
+- Git
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+No hace falta instalar PHP, Composer, Node ni MySQL: todo corre dentro de contenedores.
 
-```bash
-ng generate component component-name
-```
+Puertos que deben estar libres: **8081** (API), **3307** (MySQL), **4200** (front).
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
-```
+## Cómo levantar el sistema completo
 
-## Building
-
-To build the project run:
+### 1. Clonar ambos repositorios
 
 ```bash
-ng build
+git clone https://github.com/abelnexus/salkantay_back.git
+git clone https://github.com/abelnexus/salkantay_front.git
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### 2. Backend
 
 ```bash
-ng test
+cd salkantay_back
+cp .env.example .env
+docker compose up -d --build
+
+# Solo la primera vez:
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate --seed
 ```
 
-## Running end-to-end tests
+> Si `migrate` falla con *Connection refused*, MySQL aún está arrancando: espera unos segundos y vuelve a ejecutarlo.
 
-For end-to-end (e2e) testing, run:
+Comprobar que responde: http://localhost:8081/api/health
+
+### 3. Frontend
 
 ```bash
-ng e2e
+cd ../salkantay_front
+docker compose up -d --build
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+La primera vez tarda un poco (instala dependencias y compila). Ver el avance con `docker compose logs -f front`.
 
-## Additional Resources
+### 4. Entrar
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Abrir **http://localhost:4200** e iniciar sesión con el usuario creado por el seeder:
+
+| Email | Contraseña | Rol |
+| --- | --- | --- |
+| `test@example.com` | `password` | Administrador (acceso total) |
+
+---
+
+## Sin Docker (opcional)
+
+Con Node 22 instalado localmente, y el backend ya corriendo:
+
+```bash
+npm install
+npm start          # http://localhost:4200
+```
+
+## Tests
+
+```bash
+docker compose exec front npx ng test --watch=false
+```
+
+## Comandos útiles
+
+```bash
+docker compose ps                 # qué está corriendo
+docker compose logs -f front      # logs en vivo
+docker compose down               # apagar
+docker compose up -d --build      # reconstruir (p. ej. tras cambiar package.json)
+```
