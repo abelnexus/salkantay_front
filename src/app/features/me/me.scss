@@ -1,0 +1,38 @@
+.card {
+  max-width: 480px;
+  margin: 24px auto;
+  padding: 24px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+
+  h2 { margin: 0 0 16px; font-size: 1.25rem; }
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0 0 20px;
+}
+
+dt { color: #666; }
+dd { margin: 0; }
+
+.pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.8rem;
+
+  & + & { margin-left: 4px; }
+}
+
+button {
+  padding: 8px 14px;
+  font: inherit;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}

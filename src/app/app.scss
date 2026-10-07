@@ -1,0 +1,88 @@
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e5e5e5;
+
+  h1 { margin: 0; font-size: 1.25rem; }
+}
+
+.brand, .status {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.status { gap: 16px; }
+
+nav {
+  display: flex;
+  gap: 4px;
+
+  a {
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 0.9rem;
+
+    &:hover { background: #f3f4f6; }
+    &.active { background: #eef2ff; color: #1f2937; font-weight: 600; }
+  }
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eee;
+
+  &.ok   { background: #d9f5e3; color: #146c3a; }
+  &.fail { background: #fde2e2; color: #a12020; }
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+
+  button {
+    padding: 6px 12px;
+    font: inherit;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+  }
+}
+
+.content {
+  padding: 24px;
+}
+
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.toast {
+  min-width: 240px;
+  max-width: 360px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  cursor: pointer;
+
+  &.success { background: #d9f5e3; color: #146c3a; }
+  &.error   { background: #fde2e2; color: #a12020; }
+}

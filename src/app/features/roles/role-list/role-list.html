@@ -1,0 +1,83 @@
+<section class="page">
+  <header class="page-header">
+    <h2>Roles y permisos</h2>
+    @if (auth.can('roles.create')) {
+      <a class="btn btn-primary" routerLink="/roles/new">+ Nuevo rol</a>
+    }
+  </header>
+
+  <app-roles-tabs />
+
+  @if (error()) {
+    <p class="alert">{{ error() }}</p>
+  }
+
+  <div class="table-wrap" [class.loading]="loading()">
+    <table>
+      <thead>
+        <tr>
+          <th>Rol</th>
+          <th>Descripción</th>
+          <th>Permisos</th>
+          <th>Usuarios</th>
+          <th class="actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (role of roles(); track role.id) {
+          <tr>
+            <td>
+              <strong>{{ role.name }}</strong>
+              @if (role.is_system) {
+                <span class="tag">Sistema</span>
+              }
+            </td>
+            <td class="description">{{ role.description || '—' }}</td>
+            <td>
+              @if (role.is_system) {
+                <span class="pill ok">Todos</span>
+              } @else {
+                <span class="pill" [class.ok]="role.permissions.length">
+                  {{ role.permissions.length }}
+                  @if (totalPermissions()) {
+                    de {{ totalPermissions() }}
+                  }
+                </span>
+              }
+            </td>
+            <td>
+              @if (role.users_count && auth.can('users.view')) {
+                <a class="btn-link" routerLink="/users" [queryParams]="{ role: role.id }">
+                  {{ role.users_count }} usuario(s)
+                </a>
+              } @else {
+                {{ role.users_count }}
+              }
+            </td>
+            <td class="actions">
+              <a class="btn btn-sm" [routerLink]="['/roles', role.id, 'edit']">
+                {{ role.is_system || !auth.can('roles.update') ? 'Ver' : 'Editar' }}
+              </a>
+              @if (auth.can('roles.delete') && !role.is_system) {
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  [disabled]="deletingId() === role.id"
+                  (click)="remove(role)"
+                >
+                  {{ deletingId() === role.id ? 'Eliminando…' : 'Eliminar' }}
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty">
+              {{ loading() ? 'Cargando…' : 'No hay roles registrados.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

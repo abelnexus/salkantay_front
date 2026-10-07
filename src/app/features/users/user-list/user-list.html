@@ -1,0 +1,299 @@
+<section class="page">
+  <header class="page-header">
+    <h2>Usuarios</h2>
+    <div class="header-actions">
+      @if (auth.can('users.export')) {
+        <button
+          type="button"
+          class="btn"
+          (click)="exportCsv('results')"
+          [disabled]="bulkBusy() || !result()?.total"
+        >
+          {{
+            bulkBusy() === 'export'
+              ? 'Exportando…'
+              : query().search || query().role
+                ? 'Exportar resultados'
+                : 'Exportar todo'
+          }}
+        </button>
+      }
+      @if (auth.can('users.create')) {
+        <a class="btn btn-primary" routerLink="/users/new">+ Nuevo usuario</a>
+      }
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search">
+      <input
+        type="search"
+        placeholder="Buscar por nombre o email…"
+        [formControl]="searchControl"
+        aria-label="Buscar usuarios"
+      />
+      @if (searchControl.value) {
+        <button type="button" class="clear" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+          ✕
+        </button>
+      }
+    </div>
+
+    @if (roles().length) {
+      <label class="per-page">
+        Rol
+        <select [value]="query().role ?? ''" (change)="changeRole($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (role of roles(); track role.id) {
+            <option [value]="role.id">{{ role.name }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <label class="per-page">
+      Mostrar
+      <select [value]="query().per_page" (change)="changePerPage($any($event.target).value)">
+        @for (option of perPageOptions; track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+      por página
+    </label>
+  </div>
+
+  @if (error()) {
+    <p class="alert">{{ error() }}</p>
+  }
+
+  @if (selectedCount() > 0) {
+    <div class="bulk-bar">
+      <span
+        ><strong>{{ selectedCount() }}</strong> seleccionado(s)</span
+      >
+      <div class="bulk-actions">
+        @if (auth.can('users.export')) {
+          <button
+            type="button"
+            class="btn btn-sm"
+            [disabled]="bulkBusy()"
+            (click)="exportCsv('selection')"
+          >
+            {{ bulkBusy() === 'export' ? 'Exportando…' : 'Exportar CSV' }}
+          </button>
+        }
+        @if (auth.can('users.update')) {
+          <button
+            type="button"
+            class="btn btn-sm"
+            [disabled]="bulkBusy()"
+            (click)="bulkVerify(true)"
+          >
+            Marcar verificados
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm"
+            [disabled]="bulkBusy()"
+            (click)="bulkVerify(false)"
+          >
+            Marcar no verificados
+          </button>
+        }
+        @if (auth.can('users.delete')) {
+          <button
+            type="button"
+            class="btn btn-sm btn-danger"
+            [disabled]="bulkBusy()"
+            (click)="bulkDelete()"
+          >
+            {{ bulkBusy() === 'delete' ? 'Eliminando…' : 'Eliminar' }}
+          </button>
+        }
+        <button type="button" class="btn-link" (click)="clearSelection()">Limpiar selección</button>
+      </div>
+    </div>
+
+    @if (result(); as res) {
+      @if (selectAll()) {
+        <p class="select-notice">
+          Están seleccionados {{ selectedCount() }} de {{ res.total }} resultados
+          @if (query().search) {
+            que coinciden con "{{ query().search }}"
+          }
+          @if (selectedRoleName(); as roleName) {
+            con el rol {{ roleName }}
+          }
+          .
+          <button type="button" class="btn-link" (click)="clearSelection()">
+            Limpiar selección
+          </button>
+        </p>
+      } @else if (pageSelection() === 'all' && res.total > res.data.length) {
+        <p class="select-notice">
+          Seleccionaste los {{ res.data.length }} usuarios de esta página.
+          <button type="button" class="btn-link" (click)="selectAllResults()">
+            Seleccionar los {{ res.total }} resultados
+          </button>
+        </p>
+      }
+    }
+  }
+
+  <div class="table-wrap" [class.loading]="loading()">
+    <table>
+      <thead>
+        <tr>
+          <th class="check">
+            <input
+              type="checkbox"
+              [checked]="pageSelection() === 'all'"
+              [indeterminate]="pageSelection() === 'some'"
+              [disabled]="!result()?.data?.length"
+              (change)="togglePage()"
+              aria-label="Seleccionar todos los de esta página"
+            />
+          </th>
+          <th>
+            <button type="button" (click)="sortBy('id')">ID {{ sortIcon('id') }}</button>
+          </th>
+          <th>
+            <button type="button" (click)="sortBy('name')">Nombre {{ sortIcon('name') }}</button>
+          </th>
+          <th>
+            <button type="button" (click)="sortBy('email')">Email {{ sortIcon('email') }}</button>
+          </th>
+          <th>Roles</th>
+          <th>Verificado</th>
+          <th>
+            <button type="button" (click)="sortBy('created_at')">
+              Creado {{ sortIcon('created_at') }}
+            </button>
+          </th>
+          <th class="actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of result()?.data; track user.id) {
+          <tr [class.selected]="isSelected(user.id)">
+            <td class="check">
+              <input
+                type="checkbox"
+                [checked]="isSelected(user.id)"
+                (change)="toggle(user.id)"
+                [attr.aria-label]="'Seleccionar ' + user.name"
+              />
+            </td>
+            <td>{{ user.id }}</td>
+            <td>
+              {{ user.name }}
+              @if (user.id === auth.user()?.id) {
+                <span class="tag">Tú</span>
+              }
+            </td>
+            <td>{{ user.email }}</td>
+            <td>
+              @for (role of user.roles; track role.id) {
+                <span class="pill role">{{ role.name }}</span>
+              } @empty {
+                <span class="muted">Sin rol</span>
+              }
+            </td>
+            <td>
+              <span class="pill" [class.ok]="user.email_verified_at">{{
+                user.email_verified_at ? 'Sí' : 'No'
+              }}</span>
+            </td>
+            <td>{{ user.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="actions">
+              @if (auth.can('users.update') && !isProtected(user)) {
+                <a class="btn btn-sm" [routerLink]="['/users', user.id, 'edit']">Editar</a>
+              }
+              @if (auth.can('users.delete')) {
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger"
+                  [disabled]="
+                    user.id === auth.user()?.id || isProtected(user) || deletingId() === user.id
+                  "
+                  [title]="
+                    user.id === auth.user()?.id
+                      ? 'No puedes eliminar tu propio usuario'
+                      : isProtected(user)
+                        ? 'Solo un Administrador puede eliminar a otro Administrador'
+                        : ''
+                  "
+                  (click)="remove(user)"
+                >
+                  {{ deletingId() === user.id ? 'Eliminando…' : 'Eliminar' }}
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty">
+              @if (loading()) {
+                Cargando…
+              } @else if (query().search) {
+                No hay usuarios que coincidan con "{{ query().search }}".
+              } @else if (query().role) {
+                No hay usuarios con el rol {{ selectedRoleName() ?? 'seleccionado' }}.
+              } @else {
+                No hay usuarios registrados.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (result(); as res) {
+    @if (res.total > 0) {
+      <footer class="pagination">
+        <span class="summary">Mostrando {{ res.from }}–{{ res.to }} de {{ res.total }}</span>
+
+        <nav aria-label="Paginación">
+          <button
+            type="button"
+            (click)="goToPage(1)"
+            [disabled]="res.current_page === 1"
+            aria-label="Primera página"
+          >
+            «
+          </button>
+          <button
+            type="button"
+            (click)="goToPage(res.current_page - 1)"
+            [disabled]="res.current_page === 1"
+            aria-label="Página anterior"
+          >
+            ‹
+          </button>
+          @for (p of pages(); track p) {
+            <button type="button" [class.active]="p === res.current_page" (click)="goToPage(p)">
+              {{ p }}
+            </button>
+          }
+          <button
+            type="button"
+            (click)="goToPage(res.current_page + 1)"
+            [disabled]="res.current_page === res.last_page"
+            aria-label="Página siguiente"
+          >
+            ›
+          </button>
+          <button
+            type="button"
+            (click)="goToPage(res.last_page)"
+            [disabled]="res.current_page === res.last_page"
+            aria-label="Última página"
+          >
+            »
+          </button>
+        </nav>
+      </footer>
+    }
+  }
+</section>

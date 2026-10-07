@@ -1,0 +1,108 @@
+<section class="page narrow">
+  <header class="page-header">
+    <h2>{{ isEdit() ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+    <a class="btn" routerLink="/users">← Volver</a>
+  </header>
+
+  @if (loadError()) {
+    <p class="alert">{{ loadError() }}</p>
+  } @else if (loading()) {
+    <p class="muted">Cargando…</p>
+  } @else {
+    <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label class="field">
+        <span>Nombre</span>
+        <input
+          type="text"
+          formControlName="name"
+          autocomplete="name"
+          [class.invalid]="errorFor('name')"
+        />
+        @if (errorFor('name'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Email</span>
+        <input
+          type="email"
+          formControlName="email"
+          autocomplete="off"
+          [class.invalid]="errorFor('email')"
+        />
+        @if (errorFor('email'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+      </label>
+
+      <div class="row">
+        <label class="field">
+          <span>Contraseña</span>
+          <input
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            [class.invalid]="errorFor('password')"
+          />
+          @if (errorFor('password'); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          } @else if (isEdit()) {
+            <small class="hint">Déjala vacía para no cambiarla</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>Confirmar contraseña</span>
+          <input
+            type="password"
+            formControlName="password_confirmation"
+            autocomplete="new-password"
+            [class.invalid]="errorFor('password_confirmation')"
+          />
+          @if (errorFor('password_confirmation'); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          }
+        </label>
+      </div>
+
+      @if (canAssignRoles) {
+        <fieldset class="field roles">
+          <legend>Roles</legend>
+          @for (role of roles(); track role.id) {
+            <label
+              class="role-option"
+              [class.locked]="!!roleLockedReason(role)"
+              [title]="roleLockedReason(role) ?? ''"
+            >
+              <input
+                type="checkbox"
+                [checked]="selectedRoles().has(role.id)"
+                [disabled]="!!roleLockedReason(role)"
+                (change)="toggleRole(role.id)"
+              />
+              <span>
+                <strong>{{ role.name }}</strong>
+                @if (role.description) {
+                  <small class="hint">{{ role.description }}</small>
+                }
+              </span>
+            </label>
+          } @empty {
+            <small class="hint">Cargando roles…</small>
+          }
+          @if (!selectedRoles().size) {
+            <small class="hint">Sin roles, el usuario solo podrá ver su perfil.</small>
+          }
+        </fieldset>
+      }
+
+      <footer class="form-actions">
+        <a class="btn" routerLink="/users">Cancelar</a>
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear usuario' }}
+        </button>
+      </footer>
+    </form>
+  }
+</section>

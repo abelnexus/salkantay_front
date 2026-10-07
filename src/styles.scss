@@ -1,0 +1,93 @@
+/* Estilos globales compartidos por todas las vistas */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: #1f2937;
+  background: #fff;
+}
+
+input:not([type='checkbox'], [type='radio']), select {
+  padding: 8px 10px;
+  font: inherit;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+
+  &:focus { outline: 2px solid #93c5fd; outline-offset: 0; border-color: #60a5fa; }
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+
+  &.narrow { max-width: 640px; }
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h2 { margin: 0; font-size: 1.35rem; }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #1f2937;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: #f3f4f6; }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.btn-primary {
+  color: #fff;
+  border-color: #1f2937;
+  background: #1f2937;
+
+  &:hover:not(:disabled) { background: #374151; }
+}
+
+.btn-danger {
+  color: #b42318;
+  border-color: #f3c3bf;
+
+  &:hover:not(:disabled) { background: #fdecea; }
+}
+
+.btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+
+.btn-link {
+  padding: 0 4px;
+  font: inherit;
+  color: #1d4ed8;
+  text-decoration: underline;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+input[type='checkbox'] { width: 16px; height: 16px; cursor: pointer; accent-color: #1f2937; }
+
+.alert {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fde2e2;
+  color: #a12020;
+  font-size: 0.9rem;
+}

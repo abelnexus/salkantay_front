@@ -1,0 +1,9 @@
+services:
+  front:
+    build: .
+    container_name: salkantay-front
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules   # node_modules vive dentro del contenedor, no se pisa con el del host

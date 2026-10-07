@@ -1,0 +1,110 @@
+<section class="page narrow">
+  <header class="page-header">
+    <h2>
+      @if (!isEdit()) {
+        Nuevo rol
+      } @else if (readonly()) {
+        Rol {{ role()?.name }}
+      } @else {
+        Editar rol
+      }
+    </h2>
+    <a class="btn" routerLink="/roles">← Volver</a>
+  </header>
+
+  @if (loadError()) {
+    <p class="alert">{{ loadError() }}</p>
+  } @else if (loading()) {
+    <p class="muted">Cargando…</p>
+  } @else {
+    <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (role()?.is_system) {
+        <p class="notice">
+          El rol <strong>{{ role()?.name }}</strong> es del sistema: tiene todos los permisos y no
+          se puede modificar ni eliminar.
+        </p>
+      } @else if (readonly()) {
+        <p class="notice">
+          No tienes permiso para editar roles; estás viendo el rol en modo lectura.
+        </p>
+      }
+
+      <label class="field">
+        <span>Nombre</span>
+        <input type="text" formControlName="name" [class.invalid]="errorFor('name')" />
+        @if (errorFor('name'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Descripción <small class="hint">(opcional)</small></span>
+        <input
+          type="text"
+          formControlName="description"
+          [class.invalid]="errorFor('description')"
+        />
+        @if (errorFor('description'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+      </label>
+
+      <div class="permissions">
+        <div class="permissions-header">
+          <span class="title">Permisos</span>
+          <span class="count">{{ selected().size }} de {{ totalPermissions() }}</span>
+          @if (!readonly()) {
+            <button type="button" class="btn-link" (click)="toggleAll()">
+              {{ selected().size < totalPermissions() ? 'Marcar todos' : 'Quitar todos' }}
+            </button>
+          }
+        </div>
+
+        @for (group of groups(); track group.module) {
+          <fieldset class="group" [disabled]="readonly()">
+            <legend>
+              <label>
+                <input
+                  type="checkbox"
+                  [checked]="groupState(group) === 'all'"
+                  [indeterminate]="groupState(group) === 'some'"
+                  (change)="toggleGroup(group)"
+                />
+                {{ group.label }}
+              </label>
+            </legend>
+
+            <div class="group-items">
+              @for (permission of group.permissions; track permission.name) {
+                <label class="permission">
+                  <input
+                    type="checkbox"
+                    [checked]="isChecked(permission.name)"
+                    (change)="toggle(permission.name)"
+                  />
+                  <span>
+                    {{ permission.label }}
+                    <code>{{ permission.name }}</code>
+                  </span>
+                </label>
+              }
+            </div>
+          </fieldset>
+        }
+
+        @if (permissionsError(); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+      </div>
+
+      @if (!readonly()) {
+        <footer class="form-actions">
+          <a class="btn" routerLink="/roles">Cancelar</a>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Guardando…' : isEdit() ? 'Guardar cambios' : 'Crear rol' }}
+          </button>
+        </footer>
+      }
+    </form>
+  }
+</section>

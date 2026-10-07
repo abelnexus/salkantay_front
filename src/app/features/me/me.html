@@ -1,0 +1,28 @@
+@if (auth.user(); as user) {
+  <section class="card">
+    <h2>Mi perfil</h2>
+    <dl>
+      <dt>ID</dt>
+      <dd>{{ user.id }}</dd>
+      <dt>Nombre</dt>
+      <dd>{{ user.name }}</dd>
+      <dt>Email</dt>
+      <dd>{{ user.email }}</dd>
+      <dt>Email verificado</dt>
+      <dd>{{ user.email_verified_at ? (user.email_verified_at | date: 'medium') : 'No' }}</dd>
+      <dt>Roles</dt>
+      <dd>
+        @for (role of user.roles; track role.id) {
+          <span class="pill">{{ role.name }}</span>
+        } @empty {
+          Sin rol asignado
+        }
+      </dd>
+      <dt>Permisos</dt>
+      <dd>{{ user.permissions.length }}</dd>
+      <dt>Miembro desde</dt>
+      <dd>{{ user.created_at | date: 'medium' }}</dd>
+    </dl>
+    <button type="button" (click)="auth.logout()">Cerrar sesión</button>
+  </section>
+}

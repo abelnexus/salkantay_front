@@ -1,0 +1,42 @@
+<header class="topbar">
+  <div class="brand">
+    <h1>Salkantay</h1>
+    @if (auth.user()) {
+      <nav>
+        @if (auth.can('users.view')) {
+          <a routerLink="/users" routerLinkActive="active">Usuarios</a>
+        }
+        @if (auth.can('roles.view')) {
+          <a routerLink="/roles" routerLinkActive="active">Roles y permisos</a>
+        }
+        <a routerLink="/me" routerLinkActive="active">Mi perfil</a>
+      </nav>
+    }
+  </div>
+
+  <div class="status">
+    @if (health(); as h) {
+      <span class="badge ok">API conectada · {{ h.app }}</span>
+    } @else if (error()) {
+      <span class="badge fail">{{ error() }}</span>
+    } @else {
+      <span class="badge">Conectando…</span>
+    }
+    @if (auth.user(); as user) {
+      <div class="session">
+        <span>{{ user.name }}</span>
+        <button type="button" (click)="auth.logout()">Salir</button>
+      </div>
+    }
+  </div>
+</header>
+
+<main class="content">
+  <router-outlet />
+</main>
+
+<div class="toasts" aria-live="polite">
+  @for (n of notifications.items(); track n.id) {
+    <div class="toast" [class]="n.type" (click)="notifications.dismiss(n.id)">{{ n.text }}</div>
+  }
+</div>

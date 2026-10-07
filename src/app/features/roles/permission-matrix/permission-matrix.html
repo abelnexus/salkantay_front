@@ -1,0 +1,105 @@
+<section class="page wide">
+  <header class="page-header">
+    <h2>Roles y permisos</h2>
+    @if (auth.can('roles.create')) {
+      <a class="btn btn-primary" routerLink="/roles/new">+ Nuevo rol</a>
+    }
+  </header>
+
+  <app-roles-tabs />
+
+  @if (error()) {
+    <p class="alert">{{ error() }}</p>
+  } @else if (loading()) {
+    <p class="muted">Cargando…</p>
+  } @else {
+    @if (!canEdit()) {
+      <p class="notice">
+        Estás viendo la matriz en modo lectura: no tienes permiso para editar roles.
+      </p>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="permission-col">Permiso</th>
+            @for (role of roles(); track role.id) {
+              <th class="role-col">
+                <a [routerLink]="['/roles', role.id, 'edit']">{{ role.name }}</a>
+                @if (role.is_system) {
+                  <small>Todos</small>
+                } @else {
+                  <small>{{ grantsCount(role) }}</small>
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of groups(); track group.module) {
+            <tr class="group-row">
+              <th scope="rowgroup">{{ group.label }}</th>
+              @for (role of roles(); track role.id) {
+                <td class="cell">
+                  <input
+                    type="checkbox"
+                    [checked]="groupState(role, group) === 'all'"
+                    [indeterminate]="groupState(role, group) === 'some'"
+                    [disabled]="isLocked(role)"
+                    (change)="toggleGroup(role, group)"
+                    [attr.aria-label]="
+                      'Todos los permisos de ' + group.label + ' para ' + role.name
+                    "
+                  />
+                </td>
+              }
+            </tr>
+            @for (permission of group.permissions; track permission.name) {
+              <tr>
+                <th scope="row" class="permission-col">
+                  {{ permission.label }}
+                  <code>{{ permission.name }}</code>
+                </th>
+                @for (role of roles(); track role.id) {
+                  <td class="cell" [class.changed]="changed(role, permission.name)">
+                    <input
+                      type="checkbox"
+                      [checked]="has(role, permission.name)"
+                      [disabled]="isLocked(role)"
+                      (change)="toggle(role, permission.name)"
+                      [attr.aria-label]="permission.label + ' para ' + role.name"
+                    />
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (dirtyRoles().length) {
+      <div class="save-bar">
+        <span>
+          Cambios sin guardar en
+          <strong>{{ dirtyRoles().length }}</strong> rol(es):
+          {{ dirtyRolesNames() }}
+        </span>
+        <div class="save-actions">
+          <button type="button" class="btn btn-sm" [disabled]="saving()" (click)="discard()">
+            Descartar
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            [disabled]="saving()"
+            (click)="save()"
+          >
+            {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</section>
